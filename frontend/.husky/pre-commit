@@ -2,9 +2,18 @@
 set -e
 
 root="$(git rev-parse --show-toplevel)"
+cd "$root"
 
-"$root/backend/scripts/pre-commit.sh"
+if git diff --cached --name-only --diff-filter=ACM | grep -q '^backend/'; then
+	"$root/backend/scripts/pre-commit.sh"
+else
+	echo "- no staged backend changes, skip backend checks"
+fi
 
-cd "$root/frontend"
-npx lint-staged
-npm run lint
+if git diff --cached --name-only --diff-filter=ACM | grep -q '^frontend/'; then
+	cd "$root/frontend"
+	npx lint-staged
+	npm run lint
+else
+	echo "- no staged frontend changes, skip frontend checks"
+fi
