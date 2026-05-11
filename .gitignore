@@ -1,0 +1,70 @@
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Docker / local runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Go build/test artifacts
+backend/bin/
+backend/tmp/
+backend/vendor/
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+backend/*.test
+backend/*.out
+backend/*.prof
+backend/coverage.out
+backend/coverage.html
+
+# SQLBoiler generated backups / temp
+backend/internal/models.bak/
+
+# Node / React artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+
+# Frontend caches
+frontend/.npm/
+frontend/.pnpm-store/
+frontend/.yarn/
+frontend/.yarn-cache/
+frontend/.eslintcache
+frontend/.stylelintcache
+frontend/tsconfig.tsbuildinfo
+
+# Test / e2e artifacts
+frontend/playwright-report/
+frontend/test-results/
+
+# Logs
+*.log
+backend/*.log
+frontend/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors / IDE
+.idea/
+.vscode/

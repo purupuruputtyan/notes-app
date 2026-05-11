@@ -1,0 +1,21 @@
+# 依存ライブラリ（イメージ内でインストールするため転送不要）
+node_modules
+
+# ビルド成果物やログファイル
+dist
+build
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# Git関連（履歴データはイメージに不要）
+.git
+.gitignore
+
+# エディタやOSの一時ファイル
+.vscode
+.DS_Store
+
+# 環境変数（秘密情報はイメージに焼き込まない）
+.env
+.env.local
