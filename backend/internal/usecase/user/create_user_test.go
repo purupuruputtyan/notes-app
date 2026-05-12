@@ -82,13 +82,13 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	longTitle := "a"
-	for len(longTitle) <= 21 {
-		longTitle += "a"
+	longNickName := "a"
+	for len(longNickName) <= 21 {
+		longNickName += "a"
 	}
 
 	input := CreateUserInput{
-		NickName:  longTitle,
+		NickName:  longNickName,
 		Email:     "test@example.com",
 		Password:  "Password-hash123",
 		IconImage: "https://example.com",
