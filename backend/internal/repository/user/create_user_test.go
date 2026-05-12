@@ -5,6 +5,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarondl/null/v8"
+	"github.com/google/uuid"
 
 	"notes-app/internal/models"
 )
@@ -25,6 +26,7 @@ func TestUserRepository_Create(
 	repo := NewUser(db)
 
 	user := models.User{
+		ID:           "4c728e23-74d6-47b4-ae57-a9a3f2d242c7",
 		NickName:     "テストユーザー",
 		Email:        "test@example.com",
 		PasswordHash: "password-hash",
@@ -32,6 +34,16 @@ func TestUserRepository_Create(
 	}
 
 	mock.ExpectExec(`INSERT INTO "users"`).
+		WithArgs(
+			sqlmock.AnyArg(), // ID
+			sqlmock.AnyArg(), // NickName
+			sqlmock.AnyArg(), // Email
+			sqlmock.AnyArg(), // PasswordHash
+			sqlmock.AnyArg(), // IconImage
+			sqlmock.AnyArg(), // IsActive
+			sqlmock.AnyArg(), // created_at
+			sqlmock.AnyArg(), // updated_at
+		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	created, err := repo.Create(user)
@@ -80,5 +92,9 @@ func TestUserRepository_Create(
 			"unmet sql expectations: %v",
 			err,
 		)
+	}
+
+	if _, err := uuid.Parse(created.ID); err != nil {
+		t.Fatalf("invalid uuid: %s", created.ID)
 	}
 }

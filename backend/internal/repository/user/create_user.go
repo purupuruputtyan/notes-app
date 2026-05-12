@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/google/uuid"
 
 	"notes-app/internal/models"
 )
@@ -13,7 +12,7 @@ func (r *UserRepository) Create(input models.User) (models.User, error) {
 	ctx := context.Background()
 
 	row := &models.User{
-		ID:           uuid.NewString(),
+		ID:           input.ID,
 		NickName:     input.NickName,
 		Email:        input.Email,
 		PasswordHash: input.PasswordHash,
