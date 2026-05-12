@@ -21,10 +21,10 @@ func TestUserUseCase_Create(t *testing.T) {
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
-		NickName:     "テストユーザー",
-		Email:        "test@example.com",
-		PasswordHash: "password-hash123",
-		IconImage:    "https://example.com",
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "Password-hash123",
+		IconImage: "https://example.com",
 	}
 
 	created, err := uc.Create(input)
@@ -45,11 +45,11 @@ func TestUserUseCase_Create(t *testing.T) {
 	}
 
 	if created.PasswordHash == "" {
-		t.Fatalf("expected PasswordHash to be set")
+		t.Fatalf("expected Password to be set")
 	}
 
-	if created.PasswordHash == "password-hash123" {
-		t.Fatalf("password must be hashed")
+	if created.PasswordHash == "Password-hash123" {
+		t.Fatalf("Password must be hashed")
 	}
 
 	if len(repo.users) != 1 {
@@ -62,10 +62,10 @@ func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
-		NickName:     "",
-		Email:        "test@example.com",
-		PasswordHash: "password-hash123",
-		IconImage:    "https://example.com",
+		NickName:  "",
+		Email:     "test@example.com",
+		Password:  "Password-hash123",
+		IconImage: "https://example.com",
 	}
 
 	_, err := uc.Create(input)
@@ -88,10 +88,10 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 	}
 
 	input := CreateUserInput{
-		NickName:     longTitle,
-		Email:        "test@example.com",
-		PasswordHash: "password-hash123",
-		IconImage:    "https://example.com",
+		NickName:  longTitle,
+		Email:     "test@example.com",
+		Password:  "Password-hash123",
+		IconImage: "https://example.com",
 	}
 
 	_, err := uc.Create(input)
@@ -109,10 +109,10 @@ func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
-		NickName:     "テストユーザー",
-		Email:        "testexample.com",
-		PasswordHash: "password-hash123",
-		IconImage:    "https://example.com",
+		NickName:  "テストユーザー",
+		Email:     "testexample.com",
+		Password:  "Password-hash123",
+		IconImage: "https://example.com",
 	}
 
 	_, err := uc.Create(input)
@@ -130,10 +130,10 @@ func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
-		NickName:     "テストユーザー",
-		Email:        "test@example.com",
-		PasswordHash: "p123@",
-		IconImage:    "https://example.com",
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "p123@",
+		IconImage: "https://example.com",
 	}
 
 	_, err := uc.Create(input)
@@ -151,10 +151,10 @@ func TestUserUseCase_Create_InvalidPassword(t *testing.T) {
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
-		NickName:     "テストユーザー",
-		Email:        "test@example.com",
-		PasswordHash: "password",
-		IconImage:    "https://example.com",
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "Password",
+		IconImage: "https://example.com",
 	}
 
 	_, err := uc.Create(input)

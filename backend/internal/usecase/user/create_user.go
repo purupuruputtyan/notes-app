@@ -15,10 +15,10 @@ type UserUseCase struct {
 }
 
 type CreateUserInput struct {
-	NickName     string
-	Email        string
-	PasswordHash string
-	IconImage    string
+	NickName  string
+	Email     string
+	Password  string
+	IconImage string
 }
 
 func NewUserUseCase(repo user.Repository) *UserUseCase {
@@ -36,11 +36,11 @@ func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
 		return models.User{}, err
 	}
 
-	if err := validatePassword(input.PasswordHash); err != nil {
+	if err := validatePassword(input.Password); err != nil {
 		return models.User{}, err
 	}
 
-	hashed, err := hashPassword(input.PasswordHash)
+	hashed, err := hashPassword(input.Password)
 
 	if err != nil {
 		return models.User{}, err
