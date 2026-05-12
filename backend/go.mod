@@ -9,6 +9,7 @@ require (
 	github.com/aarondl/strmangle v0.0.9
 	github.com/friendsofgo/errors v0.9.2
 	github.com/google/uuid v1.6.0
+	golang.org/x/crypto v0.51.0
 )
 
 require (

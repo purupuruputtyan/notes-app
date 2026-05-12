@@ -1,0 +1,168 @@
+package user
+
+import (
+	"testing"
+
+	"notes-app/internal/domain/user"
+	"notes-app/internal/models"
+)
+
+type stubRepo struct {
+	users []models.User
+}
+
+func (s *stubRepo) Create(t models.User) (models.User, error) {
+	s.users = append(s.users, t)
+	return t, nil
+}
+
+func TestUserUseCase_Create(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	input := CreateUserInput{
+		NickName:     "テストユーザー",
+		Email:        "test@example.com",
+		PasswordHash: "password-hash123",
+		IconImage:    "https://example.com",
+	}
+
+	created, err := uc.Create(input)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if created.ID == "" {
+		t.Fatalf("expected ID to be set")
+	}
+
+	if created.NickName != "テストユーザー" {
+		t.Fatalf("expected NickName テストユーザー, got %s", created.NickName)
+	}
+
+	if created.Email != "test@example.com" {
+		t.Fatalf("expected Email test@example.com, got %s", created.Email)
+	}
+
+	if created.PasswordHash == "" {
+		t.Fatalf("expected PasswordHash to be set")
+	}
+
+	if created.PasswordHash == "password-hash123" {
+		t.Fatalf("password must be hashed")
+	}
+
+	if len(repo.users) != 1 {
+		t.Fatalf("expected 1 todo, got %d", len(repo.users))
+	}
+}
+
+func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	input := CreateUserInput{
+		NickName:     "",
+		Email:        "test@example.com",
+		PasswordHash: "password-hash123",
+		IconImage:    "https://example.com",
+	}
+
+	_, err := uc.Create(input)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err != user.ErrNickNameRequired {
+		t.Fatalf("expected ErrNickNameRequired, got %v", err)
+	}
+}
+
+func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	longTitle := "a"
+	for len(longTitle) <= 21 {
+		longTitle += "a"
+	}
+
+	input := CreateUserInput{
+		NickName:     longTitle,
+		Email:        "test@example.com",
+		PasswordHash: "password-hash123",
+		IconImage:    "https://example.com",
+	}
+
+	_, err := uc.Create(input)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err != user.ErrNickNameTooLong {
+		t.Fatalf("expected ErrNickNameTooLong, got %v", err)
+	}
+}
+
+func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	input := CreateUserInput{
+		NickName:     "テストユーザー",
+		Email:        "testexample.com",
+		PasswordHash: "password-hash123",
+		IconImage:    "https://example.com",
+	}
+
+	_, err := uc.Create(input)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err != user.ErrInvalidEmail {
+		t.Fatalf("expected ErrInvalidEmail, got %v", err)
+	}
+}
+
+func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	input := CreateUserInput{
+		NickName:     "テストユーザー",
+		Email:        "test@example.com",
+		PasswordHash: "p123@",
+		IconImage:    "https://example.com",
+	}
+
+	_, err := uc.Create(input)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err != user.ErrPasswordTooShort {
+		t.Fatalf("expected ErrPasswordTooShort, got %v", err)
+	}
+}
+
+func TestUserUseCase_Create_InvalidPassword(t *testing.T) {
+	repo := &stubRepo{}
+	uc := NewUserUseCase(repo)
+
+	input := CreateUserInput{
+		NickName:     "テストユーザー",
+		Email:        "test@example.com",
+		PasswordHash: "password",
+		IconImage:    "https://example.com",
+	}
+
+	_, err := uc.Create(input)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err != user.ErrInvalidPassword {
+		t.Fatalf("expected ErrInvalidPassword, got %v", err)
+	}
+}
