@@ -11,7 +11,7 @@ type UserHandler struct {
 	usecase *user.UserUseCase
 }
 
-type CreateUserRequest struct {
+type UserRequest struct {
 	NickName  string `json:"nick_name"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
@@ -37,7 +37,7 @@ func New(usecase *user.UserUseCase) *UserHandler {
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req CreateUserRequest
+	var req UserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
@@ -58,6 +58,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(ErrorResponse{
 			Message: err.Error(),
 		})
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -88,6 +89,41 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(res); err != nil {
+		http.Error(w, "failed to encode json", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request, id string) {
+	var req UserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	input := user.UpdateUserInput{
+		ID:        id,
+		NickName:  req.NickName,
+		Email:     req.Email,
+		Password:  req.Password,
+		IconImage: req.IconImage,
+	}
+
+	updated, err := h.usecase.Update(input)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(ErrorResponse{
+			Message: err.Error(),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(updated); err != nil {
 		http.Error(w, "failed to encode json", http.StatusInternalServerError)
 		return
 	}

@@ -2,19 +2,20 @@ package user
 
 import (
 	"github.com/aarondl/null/v8"
-	"github.com/google/uuid"
 
+	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
 
-type CreateUserInput struct {
+type UpdateUserInput struct {
+	ID        string
 	NickName  string
 	Email     string
 	Password  string
 	IconImage string
 }
 
-func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
+func (u *UserUseCase) Update(input UpdateUserInput) (models.User, error) {
 	if err := validateNickName(input.NickName); err != nil {
 		return models.User{}, err
 	}
@@ -33,12 +34,12 @@ func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
 		return models.User{}, err
 	}
 
-	user := models.User{
-		ID:           uuid.NewString(),
+	params := domain.UpdateUserParams{
 		NickName:     input.NickName,
 		Email:        input.Email,
 		PasswordHash: hashed,
 		IconImage:    null.StringFrom(input.IconImage),
 	}
-	return u.repo.Create(user)
+
+	return u.repo.Update(input.ID, params)
 }

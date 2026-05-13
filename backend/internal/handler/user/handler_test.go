@@ -23,12 +23,24 @@ func (s *stubRepo) Create(u models.User) (models.User, error) {
 }
 
 func (s *stubRepo) Show(id string) (models.User, error) {
-	for _, user := range s.users {
-		if user.ID == id {
-			return user, nil
+	for _, u := range s.users {
+		if u.ID == id {
+			return u, nil
 		}
 	}
+	return models.User{}, domain.ErrUserNotFound
+}
 
+func (s *stubRepo) Update(id string, params domain.UpdateUserParams) (models.User, error) {
+	for i, u := range s.users {
+		if u.ID == id {
+			s.users[i].NickName = params.NickName
+			s.users[i].Email = params.Email
+			s.users[i].PasswordHash = params.PasswordHash
+			s.users[i].IconImage = params.IconImage
+			return s.users[i], nil
+		}
+	}
 	return models.User{}, domain.ErrUserNotFound
 }
 
@@ -38,31 +50,89 @@ func setupHandler() *UserHandler {
 	return New(uc)
 }
 
+func newRequest(method, url, body string) *http.Request {
+	req := httptest.NewRequest(method, url, strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	return req
+}
+
+func putUserRequest(userID, body string) *http.Request {
+	return newRequest(http.MethodPut, "/users/"+userID, body)
+}
+
+func defaultUserRequest() UserRequest {
+	return UserRequest{
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "password123!",
+		IconImage: "https://example.com",
+	}
+}
+
+func mustMarshalUserRequest(t *testing.T, req UserRequest) string {
+	t.Helper()
+	b, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal request: %v", err)
+	}
+	return string(b)
+}
+
+func assertHTTPStatus(t *testing.T, w *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if w.Code != want {
+		t.Fatalf("expected status %d, got %d", want, w.Code)
+	}
+}
+
+func decodeUser(t *testing.T, w *httptest.ResponseRecorder) models.User {
+	t.Helper()
+	var u models.User
+	if err := json.Unmarshal(w.Body.Bytes(), &u); err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	return u
+}
+
+func decodeShowUserResponse(t *testing.T, w *httptest.ResponseRecorder) ShowUserResponse {
+	t.Helper()
+	var got ShowUserResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+		t.Fatalf("decode show response: %v", err)
+	}
+	return got
+}
+
+func createUser(t *testing.T, h *UserHandler) models.User {
+	t.Helper()
+
+	u, err := h.usecase.Create(user.CreateUserInput{
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "Password123!",
+		IconImage: "https://example.com",
+	})
+	if err != nil {
+		t.Fatalf("create error: %v", err)
+	}
+	return u
+}
+
 func TestUserHandler_Create(t *testing.T) {
 	h := setupHandler()
-
-	reqBody := strings.NewReader(`{
-		"nick_name":"テストユーザー",
-		"email":"test@example.com",
-		"password":"password123!",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	req.Header.Set("Content-Type", "application/json")
-
 	w := httptest.NewRecorder()
+	body := mustMarshalUserRequest(t, UserRequest{
+		NickName:  "テストユーザー",
+		Email:     "test@example.com",
+		Password:  "password123!",
+		IconImage: "https://example.com",
+	})
 
-	h.Create(w, req)
+	h.Create(w, newRequest(http.MethodPost, "/users", body))
 
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusCreated)
 
-	var got models.User
-	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
+	got := decodeUser(t, w)
 
 	if got.ID == "" {
 		t.Fatalf("expected ID to be set")
@@ -73,140 +143,79 @@ func TestUserHandler_Create(t *testing.T) {
 	}
 }
 
-func TestUserHandler_Create_EmptyNickName(t *testing.T) {
-	h := setupHandler()
+func TestUserHandler_Create_Validation(t *testing.T) {
+	const invalidJSONBody = `{
+			"nick_name":"テストユーザー",
+			"email":"test@example.com",
+			"password":"password123!",
+			"icon_image":"https://example.co
+		`
 
-	reqBody := strings.NewReader(`{
-		"nick_name":"",
-		"email":"test@example.com",
-		"password":"password123!",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
+	cases := []struct {
+		name    string
+		mutate  func(*UserRequest)
+		rawBody string
+	}{
+		{
+			name: "EmptyNickName",
+			mutate: func(r *UserRequest) {
+				r.NickName = ""
+			},
+		},
+		{
+			name: "NickNameTooLong",
+			mutate: func(r *UserRequest) {
+				r.NickName = strings.Repeat("a", 101)
+			},
+		},
+		{
+			name: "InvalidEmail",
+			mutate: func(r *UserRequest) {
+				r.Email = "testexample.com"
+			},
+		},
+		{
+			name: "PasswordTooShort",
+			mutate: func(r *UserRequest) {
+				r.Password = "pa123!"
+			},
+		},
+		{
+			name: "InvalidPassword",
+			mutate: func(r *UserRequest) {
+				r.Password = "password"
+			},
+		},
+		{
+			name:    "InvalidJSON",
+			rawBody: invalidJSONBody,
+		},
 	}
-}
 
-func TestUserHandler_Create_NickNameTooLong(t *testing.T) {
-	h := setupHandler()
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			h := setupHandler()
+			w := httptest.NewRecorder()
 
-	longNickName := "a"
-	for len(longNickName) <= 100 {
-		longNickName += "a"
-	}
+			var body string
+			switch {
+			case tt.rawBody != "":
+				body = tt.rawBody
+			default:
+				req := defaultUserRequest()
+				tt.mutate(&req)
+				body = mustMarshalUserRequest(t, req)
+			}
 
-	reqBody := strings.NewReader(`{
-		"nick_name":"` + longNickName + `",
-		"email":"test@example.com",
-		"password":"password123!",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
-	}
-}
-
-func TestUserHandler_Create_InvalidEmail(t *testing.T) {
-	h := setupHandler()
-
-	reqBody := strings.NewReader(`{
-		"nick_name":"テストユーザー",
-		"email":"testexample.com",
-		"password":"password123!",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
-	}
-}
-
-func TestUserHandler_Create_PasswordTooShort(t *testing.T) {
-	h := setupHandler()
-
-	reqBody := strings.NewReader(`{
-		"nick_name":"テストユーザー",
-		"email":"test@example.com",
-		"password":"pa123!",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
-	}
-}
-
-func TestUserHandler_Create_InvalidPassword(t *testing.T) {
-	h := setupHandler()
-
-	reqBody := strings.NewReader(`{
-		"nick_name":"テストユーザー",
-		"email":"test@example.com",
-		"password":"password",
-		"icon_image":"https://example.com"
-	}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
-	}
-}
-
-func TestUserHandler_Create_InvalidJSON(t *testing.T) {
-	h := setupHandler()
-
-	reqBody := strings.NewReader(`{
-		"nick_name":"テストユーザー",
-		"email":"test@example.com",
-		"password":"password123!",
-		"icon_image":"https://example.co
-	`)
-
-	req := httptest.NewRequest(http.MethodPost, "/users", reqBody)
-	w := httptest.NewRecorder()
-
-	h.Create(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", w.Code)
+			h.Create(w, newRequest(http.MethodPost, "/users", body))
+			assertHTTPStatus(t, w, http.StatusBadRequest)
+		})
 	}
 }
 
 func TestUserHandler_Show(t *testing.T) {
 	h := setupHandler()
-
-	created, _ := h.usecase.Create(user.CreateUserInput{
-		NickName:  "テストユーザー",
-		Email:     "test@example.com",
-		Password:  "Password123!",
-		IconImage: "https://example.com",
-	})
+	created := createUser(t, h)
 
 	req := httptest.NewRequest(
 		http.MethodGet,
@@ -218,15 +227,9 @@ func TestUserHandler_Show(t *testing.T) {
 
 	h.Show(w, req, created.ID)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusOK)
 
-	var got ShowUserResponse
-
-	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
-		t.Fatalf("failed to decode response body: %v", err)
-	}
+	got := decodeShowUserResponse(t, w)
 
 	if got.ID != created.ID {
 		t.Fatalf("expected id %s, got %s", created.ID, got.ID)
@@ -258,16 +261,110 @@ func TestUserHandler_Show_NotFound(t *testing.T) {
 
 	h.Show(w, req, "not-found-id")
 
-	if w.Code != http.StatusNotFound {
-		t.Fatalf(
-			"expected status 404, got %d",
-			w.Code,
-		)
-	}
+	assertHTTPStatus(t, w, http.StatusNotFound)
 
 	if !strings.Contains(w.Body.String(), "not found") {
 		t.Fatalf(
 			"expected response body to contain not found",
 		)
+	}
+}
+
+func TestUserHandler_Update(t *testing.T) {
+	h := setupHandler()
+	created := createUser(t, h)
+
+	w := httptest.NewRecorder()
+	body := mustMarshalUserRequest(t, UserRequest{
+		NickName:  "アップデートユーザー",
+		Email:     "update@example.com",
+		Password:  "updated123!",
+		IconImage: "https://update.com",
+	})
+
+	h.Update(w, putUserRequest(created.ID, body), created.ID)
+
+	assertHTTPStatus(t, w, http.StatusOK)
+
+	got := decodeUser(t, w)
+
+	if got.NickName != "アップデートユーザー" {
+		t.Fatalf("nick mismatch: %s", got.NickName)
+	}
+
+	if got.Email != "update@example.com" {
+		t.Fatalf("email mismatch: %s", got.Email)
+	}
+
+	if got.IconImage.String != "https://update.com" {
+		t.Fatalf("icon mismatch: %v", got.IconImage)
+	}
+
+	if got.PasswordHash == "updated123!" {
+		t.Fatal("password not hashed")
+	}
+}
+
+func TestUserHandler_Update_Validation(t *testing.T) {
+	cases := []struct {
+		name    string
+		mutate  func(*UserRequest)
+		rawBody string
+	}{
+		{
+			name: "EmptyNickName",
+			mutate: func(r *UserRequest) {
+				r.NickName = ""
+			},
+		},
+		{
+			name: "NickNameTooLong",
+			mutate: func(r *UserRequest) {
+				r.NickName = strings.Repeat("a", 101)
+			},
+		},
+		{
+			name: "InvalidEmail",
+			mutate: func(r *UserRequest) {
+				r.Email = "testexample.com"
+			},
+		},
+		{
+			name: "PasswordTooShort",
+			mutate: func(r *UserRequest) {
+				r.Password = "pa123!"
+			},
+		},
+		{
+			name: "InvalidPassword",
+			mutate: func(r *UserRequest) {
+				r.Password = "password"
+			},
+		},
+		{
+			name:    "InvalidJSON",
+			rawBody: `{"nick_name":"テストユーザー"`,
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			h := setupHandler()
+			created := createUser(t, h)
+			w := httptest.NewRecorder()
+
+			var body string
+			switch {
+			case tt.rawBody != "":
+				body = tt.rawBody
+			default:
+				req := defaultUserRequest()
+				tt.mutate(&req)
+				body = mustMarshalUserRequest(t, req)
+			}
+
+			h.Update(w, putUserRequest(created.ID, body), created.ID)
+			assertHTTPStatus(t, w, http.StatusBadRequest)
+		})
 	}
 }

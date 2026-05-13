@@ -1,7 +1,7 @@
 package user
 
 import (
-	"notes-app/internal/domain/user"
+	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
 
@@ -21,5 +21,26 @@ func (s *stubRepo) Show(id string) (models.User, error) {
 		}
 	}
 
-	return models.User{}, user.ErrUserNotFound
+	return models.User{}, domain.ErrUserNotFound
+}
+
+func (s *stubRepo) Update(
+	id string,
+	u domain.UpdateUserParams,
+) (models.User, error) {
+
+	for i, existingUser := range s.users {
+
+		if existingUser.ID == id {
+
+			s.users[i].NickName = u.NickName
+			s.users[i].Email = u.Email
+			s.users[i].PasswordHash = u.PasswordHash
+			s.users[i].IconImage = u.IconImage
+
+			return s.users[i], nil
+		}
+	}
+
+	return models.User{}, domain.ErrUserNotFound
 }
