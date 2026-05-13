@@ -1,7 +1,10 @@
 package user
 
 import (
+	"errors"
 	"testing"
+
+	domain "notes-app/internal/domain/user"
 )
 
 func TestUserUseCase_Show(t *testing.T) {
@@ -15,7 +18,10 @@ func TestUserUseCase_Show(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	created, _ := uc.Create(input)
+	created, err := uc.Create(input)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	found, err := uc.Show(created.ID)
 
@@ -80,5 +86,9 @@ func TestUserUseCase_Show_NotFound(t *testing.T) {
 
 	if err == nil {
 		t.Fatalf("expected error, got nil")
+	}
+
+	if !errors.Is(err, domain.ErrUserNotFound) {
+		t.Fatalf("expected ErrUserNotFound, got %v", err)
 	}
 }

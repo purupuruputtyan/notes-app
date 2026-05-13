@@ -1,9 +1,10 @@
 package user
 
 import (
+	"strings"
 	"testing"
 
-	"notes-app/internal/domain/user"
+	domain "notes-app/internal/domain/user"
 )
 
 func TestUserUseCase_Update(t *testing.T) {
@@ -16,6 +17,9 @@ func TestUserUseCase_Update(t *testing.T) {
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -55,7 +59,7 @@ func TestUserUseCase_Update(t *testing.T) {
 	}
 
 	if len(repo.users) != 1 {
-		t.Fatalf("expected 1 todo, got %d", len(repo.users))
+		t.Fatalf("expected 1 user in repo, got %d", len(repo.users))
 	}
 }
 
@@ -63,12 +67,15 @@ func TestUserUseCase_Update_EmptyNickName(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	created, _ := uc.Create(CreateUserInput{
+	created, err := uc.Create(CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -78,12 +85,12 @@ func TestUserUseCase_Update_EmptyNickName(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Update(input)
+	_, err = uc.Update(input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameRequired {
+	if err != domain.ErrNickNameRequired {
 		t.Fatalf("expected ErrNickNameRequired, got %v", err)
 	}
 }
@@ -92,17 +99,17 @@ func TestUserUseCase_Update_NickNameTooLong(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	created, _ := uc.Create(CreateUserInput{
+	created, err := uc.Create(CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
-
-	longNickName := "a"
-	for len(longNickName) <= 21 {
-		longNickName += "a"
+	if err != nil {
+		t.Fatalf("Create: %v", err)
 	}
+
+	longNickName := strings.Repeat("a", 21)
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -112,12 +119,12 @@ func TestUserUseCase_Update_NickNameTooLong(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Update(input)
+	_, err = uc.Update(input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameTooLong {
+	if err != domain.ErrNickNameTooLong {
 		t.Fatalf("expected ErrNickNameTooLong, got %v", err)
 	}
 }
@@ -126,12 +133,15 @@ func TestUserUseCase_Update_InvalidEmail(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	created, _ := uc.Create(CreateUserInput{
+	created, err := uc.Create(CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -141,12 +151,12 @@ func TestUserUseCase_Update_InvalidEmail(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Update(input)
+	_, err = uc.Update(input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidEmail {
+	if err != domain.ErrInvalidEmail {
 		t.Fatalf("expected ErrInvalidEmail, got %v", err)
 	}
 }
@@ -155,12 +165,15 @@ func TestUserUseCase_Update_PasswordTooShort(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	created, _ := uc.Create(CreateUserInput{
+	created, err := uc.Create(CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -170,12 +183,12 @@ func TestUserUseCase_Update_PasswordTooShort(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Update(input)
+	_, err = uc.Update(input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrPasswordTooShort {
+	if err != domain.ErrPasswordTooShort {
 		t.Fatalf("expected ErrPasswordTooShort, got %v", err)
 	}
 }
@@ -184,12 +197,15 @@ func TestUserUseCase_Update_InvalidPassword(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	created, _ := uc.Create(CreateUserInput{
+	created, err := uc.Create(CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
 		IconImage: "https://example.com",
 	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
 
 	input := UpdateUserInput{
 		ID:        created.ID,
@@ -199,12 +215,12 @@ func TestUserUseCase_Update_InvalidPassword(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Update(input)
+	_, err = uc.Update(input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidPassword {
+	if err != domain.ErrInvalidPassword {
 		t.Fatalf("expected ErrInvalidPassword, got %v", err)
 	}
 }

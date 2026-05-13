@@ -1,9 +1,10 @@
 package user
 
 import (
+	"strings"
 	"testing"
 
-	"notes-app/internal/domain/user"
+	domain "notes-app/internal/domain/user"
 )
 
 func TestUserUseCase_Create(t *testing.T) {
@@ -43,7 +44,7 @@ func TestUserUseCase_Create(t *testing.T) {
 	}
 
 	if len(repo.users) != 1 {
-		t.Fatalf("expected 1 todo, got %d", len(repo.users))
+		t.Fatalf("expected 1 user in repo, got %d", len(repo.users))
 	}
 }
 
@@ -63,7 +64,7 @@ func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameRequired {
+	if err != domain.ErrNickNameRequired {
 		t.Fatalf("expected ErrNickNameRequired, got %v", err)
 	}
 }
@@ -72,10 +73,7 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	longNickName := "a"
-	for len(longNickName) <= 21 {
-		longNickName += "a"
-	}
+	longNickName := strings.Repeat("a", 21)
 
 	input := CreateUserInput{
 		NickName:  longNickName,
@@ -89,7 +87,7 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameTooLong {
+	if err != domain.ErrNickNameTooLong {
 		t.Fatalf("expected ErrNickNameTooLong, got %v", err)
 	}
 }
@@ -110,7 +108,7 @@ func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidEmail {
+	if err != domain.ErrInvalidEmail {
 		t.Fatalf("expected ErrInvalidEmail, got %v", err)
 	}
 }
@@ -131,7 +129,7 @@ func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrPasswordTooShort {
+	if err != domain.ErrPasswordTooShort {
 		t.Fatalf("expected ErrPasswordTooShort, got %v", err)
 	}
 }
@@ -152,7 +150,7 @@ func TestUserUseCase_Create_InvalidPassword(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidPassword {
+	if err != domain.ErrInvalidPassword {
 		t.Fatalf("expected ErrInvalidPassword, got %v", err)
 	}
 }
