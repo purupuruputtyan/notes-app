@@ -24,6 +24,12 @@ services:
     environment:
       PORT: 8080
       DATABASE_URL: postgres://notes:notes@db:5432/notes_app?sslmode=disable
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: notes
+      DB_PASSWORD: notes
+      DB_NAME: notes_app
+      DB_SSLMODE: disable
     ports:
       - "8080:8080"
     volumes:

@@ -2,12 +2,20 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	_ "github.com/lib/pq"
+
+	handler "notes-app/internal/handler/user"
+	repository "notes-app/internal/repository/user"
+	usecase "notes-app/internal/usecase/user"
 )
 
 const (
@@ -15,27 +23,66 @@ const (
 	shutdownTimeout = 10 * time.Second
 )
 
+type userRoutesHandler interface {
+	Create(http.ResponseWriter, *http.Request)
+}
+
 func main() {
-	server := newServer(addr)
+	db, err := newDB()
+	if err != nil {
+		log.Fatalf("db connection failed: host=%s err=%v", os.Getenv("DB_HOST"), err)
+	}
+	defer db.Close()
+
+	server := newServer(addr, db)
 
 	go listen(server)
 
 	waitForShutdown(server)
 }
 
-func newServer(addr string) *http.Server {
+func newDB() (*sql.DB, error) {
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_SSLMODE"),
+	)
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func newServer(addr string, db *sql.DB) *http.Server {
 	return &http.Server{
 		Addr:              addr,
-		Handler:           newMux(),
+		Handler:           newMux(db),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 }
 
-func newMux() http.Handler {
+func newMux(db *sql.DB) http.Handler {
+	repo := repository.NewUser(db)
+	userUsecase := usecase.NewUserUseCase(repo)
+	userHandler := handler.New(userUsecase)
+
 	mux := http.NewServeMux()
 
 	registerRootRoute(mux)
 	registerHealthRoutes(mux)
+	registerUserRoutes(mux, userHandler)
 
 	return mux
 }
@@ -64,6 +111,17 @@ func registerHealthRoutes(mux *http.ServeMux) {
 		w.WriteHeader(http.StatusOK)
 
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+}
+
+func registerUserRoutes(mux *http.ServeMux, userHandler userRoutesHandler) {
+	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			userHandler.Create(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
 	})
 }
 

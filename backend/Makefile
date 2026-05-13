@@ -51,3 +51,7 @@ migrate-down:
 
 migrate-status:
 	docker compose exec backend sh -c 'goose -dir /db/migrations postgres "$$DATABASE_URL" status'
+
+generate-models:
+	docker compose exec backend \
+	sqlboiler psql
