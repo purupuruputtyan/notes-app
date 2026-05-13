@@ -55,3 +55,8 @@ migrate-status:
 generate-models:
 	docker compose exec backend \
 	sqlboiler psql
+
+setup:
+	docker compose up -d --build
+	make migrate-up
+	make generate-models
