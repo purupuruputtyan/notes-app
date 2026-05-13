@@ -13,6 +13,12 @@ const (
 	minPasswordLength = 8
 )
 
+var (
+	passwordHasLetter = regexp.MustCompile(`[a-zA-Z]`)
+	passwordHasNumber = regexp.MustCompile(`[0-9]`)
+	passwordHasSymbol = regexp.MustCompile(`[!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:'",.<>/?\\|` + "`" + `~]`)
+)
+
 // ニックネーム
 func validateNickName(nickname string) error {
 	if nickname == "" {
@@ -39,9 +45,9 @@ func validatePassword(password string) error {
 		return user.ErrPasswordTooShort
 	}
 
-	hasLetter := regexp.MustCompile(`[a-zA-Z]`).MatchString(password)
-	hasNumber := regexp.MustCompile(`[0-9]`).MatchString(password)
-	hasSymbol := regexp.MustCompile(`[!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:'",.<>/?\\|` + "`" + `~]`).MatchString(password)
+	hasLetter := passwordHasLetter.MatchString(password)
+	hasNumber := passwordHasNumber.MatchString(password)
+	hasSymbol := passwordHasSymbol.MatchString(password)
 
 	if !hasLetter || !hasNumber || !hasSymbol {
 		return user.ErrInvalidPassword
