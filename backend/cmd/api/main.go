@@ -27,6 +27,7 @@ const (
 type userRoutesHandler interface {
 	Create(http.ResponseWriter, *http.Request)
 	Show(http.ResponseWriter, *http.Request, string)
+	Update(http.ResponseWriter, *http.Request, string)
 }
 
 func main() {
@@ -137,6 +138,8 @@ func registerUserRoutes(mux *http.ServeMux, userHandler userRoutesHandler) {
 
 		case http.MethodGet:
 			userHandler.Show(w, r, id)
+		case http.MethodPut:
+			userHandler.Update(w, r, id)
 
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
