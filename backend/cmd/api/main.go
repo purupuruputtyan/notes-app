@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -25,6 +26,7 @@ const (
 
 type userRoutesHandler interface {
 	Create(http.ResponseWriter, *http.Request)
+	Show(http.ResponseWriter, *http.Request, string)
 }
 
 func main() {
@@ -119,6 +121,23 @@ func registerUserRoutes(mux *http.ServeMux, userHandler userRoutesHandler) {
 		switch r.Method {
 		case http.MethodPost:
 			userHandler.Create(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimPrefix(r.URL.Path, "/users/")
+		if id == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		switch r.Method {
+
+		case http.MethodGet:
+			userHandler.Show(w, r, id)
+
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}

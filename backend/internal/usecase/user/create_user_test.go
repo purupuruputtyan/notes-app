@@ -4,17 +4,7 @@ import (
 	"testing"
 
 	"notes-app/internal/domain/user"
-	"notes-app/internal/models"
 )
-
-type stubRepo struct {
-	users []models.User
-}
-
-func (s *stubRepo) Create(t models.User) (models.User, error) {
-	s.users = append(s.users, t)
-	return t, nil
-}
 
 func TestUserUseCase_Create(t *testing.T) {
 	repo := &stubRepo{}
