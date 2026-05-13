@@ -34,4 +34,9 @@ var (
 		Code:    "ERR_005",
 		Message: "パスワードは英字・数字・記号を含めてください",
 	}
+
+	ErrUserNotFound = AppError{
+		Code:    "ERR_006",
+		Message: "ユーザーが見つかりません",
+	}
 )
