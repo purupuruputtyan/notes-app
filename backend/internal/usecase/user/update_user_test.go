@@ -3,7 +3,7 @@ package user
 import (
 	"testing"
 
-	"notes-app/internal/domain/user"
+	domain "notes-app/internal/domain/user"
 )
 
 func TestUserUseCase_Update(t *testing.T) {
@@ -83,7 +83,7 @@ func TestUserUseCase_Update_EmptyNickName(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameRequired {
+	if err != domain.ErrNickNameRequired {
 		t.Fatalf("expected ErrNickNameRequired, got %v", err)
 	}
 }
@@ -117,7 +117,7 @@ func TestUserUseCase_Update_NickNameTooLong(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrNickNameTooLong {
+	if err != domain.ErrNickNameTooLong {
 		t.Fatalf("expected ErrNickNameTooLong, got %v", err)
 	}
 }
@@ -146,7 +146,7 @@ func TestUserUseCase_Update_InvalidEmail(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidEmail {
+	if err != domain.ErrInvalidEmail {
 		t.Fatalf("expected ErrInvalidEmail, got %v", err)
 	}
 }
@@ -175,7 +175,7 @@ func TestUserUseCase_Update_PasswordTooShort(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrPasswordTooShort {
+	if err != domain.ErrPasswordTooShort {
 		t.Fatalf("expected ErrPasswordTooShort, got %v", err)
 	}
 }
@@ -204,7 +204,7 @@ func TestUserUseCase_Update_InvalidPassword(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if err != user.ErrInvalidPassword {
+	if err != domain.ErrInvalidPassword {
 		t.Fatalf("expected ErrInvalidPassword, got %v", err)
 	}
 }
