@@ -1,30 +1,17 @@
 package user
 
 import (
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/aarondl/null/v8"
 	"github.com/google/uuid"
 
-	"notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
-
-type UserUseCase struct {
-	repo user.Repository
-}
 
 type CreateUserInput struct {
 	NickName  string
 	Email     string
 	Password  string
 	IconImage string
-}
-
-func NewUserUseCase(repo user.Repository) *UserUseCase {
-	return &UserUseCase{
-		repo: repo,
-	}
 }
 
 func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
@@ -54,12 +41,4 @@ func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
 		IconImage:    null.StringFrom(input.IconImage),
 	}
 	return u.repo.Create(user)
-}
-
-func hashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
 }
