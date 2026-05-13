@@ -38,26 +38,23 @@ func TestUserRepository_Update(t *testing.T) {
 		"password_hash",
 		"icon_image",
 		"is_active",
-	}).
-		AddRow(
-			user.ID,
-			user.NickName,
-			user.Email,
-			user.PasswordHash,
-			user.IconImage,
-			user.IsActive,
-		)
+	}).AddRow(
+		user.ID,
+		user.NickName,
+		user.Email,
+		user.PasswordHash,
+		user.IconImage.String,
+		user.IsActive,
+	)
 
 	mock.ExpectQuery(`select \* from "users" where "id"=\$1`).
 		WithArgs(user.ID).
 		WillReturnRows(rows)
 
-	// UPDATE 用
 	mock.ExpectExec(`UPDATE "users"`).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	updated, err := repo.Update(UpdateUserInput{
-		ID:           user.ID,
+	updated, err := repo.Update(user.ID, domain.UpdateUserParams{
 		NickName:     user.NickName,
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
@@ -102,11 +99,47 @@ func TestUserRepository_Update_NotFound(t *testing.T) {
 		WithArgs("not-found-id").
 		WillReturnError(sql.ErrNoRows)
 
-	_, err = repo.Update(UpdateUserInput{
-		ID: "not-found-id",
+	_, err = repo.Update("not-found-id", domain.UpdateUserParams{
+		NickName:     "not-found-id",
+		Email:        "not-found-id",
+		PasswordHash: "not-found-id",
+		IconImage:    null.StringFrom("not-found-id"),
 	})
 
 	if !errors.Is(err, domain.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("unmet sql expectations: %v", err)
+	}
+}
+
+func TestUserRepository_Update_DBError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("failed to create sqlmock: %v", err)
+	}
+	defer db.Close()
+
+	repo := NewUser(db)
+
+	mock.ExpectQuery(`select \* from "users" where "id"=\$1`).
+		WithArgs("any-id").
+		WillReturnError(errors.New("db error"))
+
+	_, err = repo.Update("any-id", domain.UpdateUserParams{
+		NickName:     "x",
+		Email:        "x",
+		PasswordHash: "x",
+		IconImage:    null.StringFrom("x"),
+	})
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("unmet sql expectations: %v", err)
 	}
 }

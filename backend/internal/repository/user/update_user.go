@@ -8,22 +8,13 @@ import (
 	"notes-app/internal/domain/user"
 	"notes-app/internal/models"
 
-	"github.com/aarondl/null/v8"
 	"github.com/aarondl/sqlboiler/v4/boil"
 )
 
-type UpdateUserInput struct {
-	ID           string
-	NickName     string
-	Email        string
-	PasswordHash string
-	IconImage    null.String
-}
-
-func (r *UserRepository) Update(input UpdateUserInput) (models.User, error) {
+func (r *UserRepository) Update(id string, input user.UpdateUserParams) (models.User, error) {
 	ctx := context.Background()
 
-	row, err := models.FindUser(ctx, r.db, input.ID)
+	row, err := models.FindUser(ctx, r.db, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.User{}, user.ErrUserNotFound
 	}
@@ -36,7 +27,7 @@ func (r *UserRepository) Update(input UpdateUserInput) (models.User, error) {
 	row.PasswordHash = input.PasswordHash
 	row.IconImage = input.IconImage
 
-	rowsAffected, err := row.Update(
+	_, err = row.Update(
 		ctx,
 		r.db,
 		boil.Whitelist(
@@ -49,9 +40,6 @@ func (r *UserRepository) Update(input UpdateUserInput) (models.User, error) {
 
 	if err != nil {
 		return models.User{}, err
-	}
-	if rowsAffected == 0 {
-		return models.User{}, user.ErrUserNotFound
 	}
 
 	return *row, nil
