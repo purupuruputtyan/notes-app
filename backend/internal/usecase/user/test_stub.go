@@ -15,9 +15,9 @@ func (s *stubRepo) Create(u models.User) (models.User, error) {
 }
 
 func (s *stubRepo) Show(id string) (models.User, error) {
-	for _, user := range s.users {
-		if user.ID == id {
-			return user, nil
+	for _, u := range s.users {
+		if u.ID == id {
+			return u, nil
 		}
 	}
 
