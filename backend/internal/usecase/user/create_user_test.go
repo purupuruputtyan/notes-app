@@ -1,6 +1,7 @@
 package user
 
 import (
+	"strings"
 	"testing"
 
 	domain "notes-app/internal/domain/user"
@@ -43,7 +44,7 @@ func TestUserUseCase_Create(t *testing.T) {
 	}
 
 	if len(repo.users) != 1 {
-		t.Fatalf("expected 1 todo, got %d", len(repo.users))
+		t.Fatalf("expected 1 user in repo, got %d", len(repo.users))
 	}
 }
 
@@ -72,10 +73,7 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	longNickName := "a"
-	for len(longNickName) <= 21 {
-		longNickName += "a"
-	}
+	longNickName := strings.Repeat("a", 21)
 
 	input := CreateUserInput{
 		NickName:  longNickName,
