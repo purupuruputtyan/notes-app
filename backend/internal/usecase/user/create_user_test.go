@@ -9,7 +9,7 @@ import (
 )
 
 func TestUserUseCase_Create(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
@@ -50,7 +50,7 @@ func TestUserUseCase_Create(t *testing.T) {
 }
 
 func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
@@ -71,7 +71,7 @@ func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
 }
 
 func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	longNickName := strings.Repeat("a", 21)
@@ -94,7 +94,7 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 }
 
 func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
@@ -115,7 +115,7 @@ func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
 }
 
 func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
@@ -136,7 +136,7 @@ func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
 }
 
 func TestUserUseCase_Create_InvalidPassword(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
