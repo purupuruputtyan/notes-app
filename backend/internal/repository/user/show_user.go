@@ -9,9 +9,7 @@ import (
 	"notes-app/internal/models"
 )
 
-func (r *UserRepository) Show(id string) (models.User, error) {
-	ctx := context.Background()
-
+func (r *UserRepository) Show(ctx context.Context, id string) (models.User, error) {
 	row, err := models.FindUser(ctx, r.db, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.User{}, user.ErrUserNotFound
