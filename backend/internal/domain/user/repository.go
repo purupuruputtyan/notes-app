@@ -19,4 +19,5 @@ type Repository interface {
 	Create(ctx context.Context, input models.User) (models.User, error)
 	Show(ctx context.Context, id string) (models.User, error)
 	Update(ctx context.Context, id string, params UpdateUserParams) (models.User, error)
+	FindByEmail(ctx context.Context, email string) (models.User, error)
 }

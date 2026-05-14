@@ -6,16 +6,17 @@ import (
 	"notes-app/internal/models"
 )
 
-type stubRepo struct {
+// StubRepo はユースケース／ハンドラのテスト用インメモリ実装（本番コードからは使わないこと）。
+type StubRepo struct {
 	users []models.User
 }
 
-func (s *stubRepo) Create(ctx context.Context, u models.User) (models.User, error) {
+func (s *StubRepo) Create(ctx context.Context, u models.User) (models.User, error) {
 	s.users = append(s.users, u)
 	return u, nil
 }
 
-func (s *stubRepo) Show(ctx context.Context, id string) (models.User, error) {
+func (s *StubRepo) Show(ctx context.Context, id string) (models.User, error) {
 	for _, u := range s.users {
 		if u.ID == id {
 			return u, nil
@@ -25,7 +26,7 @@ func (s *stubRepo) Show(ctx context.Context, id string) (models.User, error) {
 	return models.User{}, domain.ErrUserNotFound
 }
 
-func (s *stubRepo) Update(
+func (s *StubRepo) Update(
 	ctx context.Context,
 	id string,
 	u domain.UpdateUserParams,
@@ -41,6 +42,16 @@ func (s *stubRepo) Update(
 			s.users[i].IconImage = u.IconImage
 
 			return s.users[i], nil
+		}
+	}
+
+	return models.User{}, domain.ErrUserNotFound
+}
+
+func (s *StubRepo) FindByEmail(ctx context.Context, email string) (models.User, error) {
+	for _, u := range s.users {
+		if u.Email == email {
+			return u, nil
 		}
 	}
 

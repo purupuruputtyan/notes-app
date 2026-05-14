@@ -30,6 +30,7 @@ services:
       DB_PASSWORD: notes
       DB_NAME: notes_app
       DB_SSLMODE: disable
+      JWT_SECRET: dev-only-change-me
     ports:
       - "8080:8080"
     volumes:

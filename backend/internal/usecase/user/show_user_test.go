@@ -9,7 +9,7 @@ import (
 )
 
 func TestUserUseCase_Show(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	input := CreateUserInput{
@@ -80,7 +80,7 @@ func TestUserUseCase_Show(t *testing.T) {
 }
 
 func TestUserUseCase_Show_NotFound(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	_, err := uc.Show(context.Background(), "not-found-id")

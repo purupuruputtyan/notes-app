@@ -8,45 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 	"notes-app/internal/usecase/user"
 )
 
-type stubRepo struct {
-	users []models.User
-}
-
-func (s *stubRepo) Create(ctx context.Context, u models.User) (models.User, error) {
-	u.ID = "test-id"
-	s.users = append(s.users, u)
-	return u, nil
-}
-
-func (s *stubRepo) Show(ctx context.Context, id string) (models.User, error) {
-	for _, u := range s.users {
-		if u.ID == id {
-			return u, nil
-		}
-	}
-	return models.User{}, domain.ErrUserNotFound
-}
-
-func (s *stubRepo) Update(ctx context.Context, id string, params domain.UpdateUserParams) (models.User, error) {
-	for i, u := range s.users {
-		if u.ID == id {
-			s.users[i].NickName = params.NickName
-			s.users[i].Email = params.Email
-			s.users[i].PasswordHash = params.PasswordHash
-			s.users[i].IconImage = params.IconImage
-			return s.users[i], nil
-		}
-	}
-	return models.User{}, domain.ErrUserNotFound
-}
-
 func setupHandler() *UserHandler {
-	repo := &stubRepo{}
+	repo := &user.StubRepo{}
 	uc := user.NewUserUseCase(repo)
 	return New(uc)
 }

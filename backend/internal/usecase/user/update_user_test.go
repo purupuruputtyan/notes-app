@@ -9,7 +9,7 @@ import (
 )
 
 func TestUserUseCase_Update(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
@@ -65,7 +65,7 @@ func TestUserUseCase_Update(t *testing.T) {
 }
 
 func TestUserUseCase_Update_EmptyNickName(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
@@ -97,7 +97,7 @@ func TestUserUseCase_Update_EmptyNickName(t *testing.T) {
 }
 
 func TestUserUseCase_Update_NickNameTooLong(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
@@ -131,7 +131,7 @@ func TestUserUseCase_Update_NickNameTooLong(t *testing.T) {
 }
 
 func TestUserUseCase_Update_InvalidEmail(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
@@ -163,7 +163,7 @@ func TestUserUseCase_Update_InvalidEmail(t *testing.T) {
 }
 
 func TestUserUseCase_Update_PasswordTooShort(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
@@ -195,7 +195,7 @@ func TestUserUseCase_Update_PasswordTooShort(t *testing.T) {
 }
 
 func TestUserUseCase_Update_InvalidPassword(t *testing.T) {
-	repo := &stubRepo{}
+	repo := &StubRepo{}
 	uc := NewUserUseCase(repo)
 
 	created, err := uc.Create(context.Background(), CreateUserInput{
