@@ -1,11 +1,11 @@
 package user
 
 import (
+	"context"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarondl/null/v8"
-	"github.com/google/uuid"
 
 	"notes-app/internal/models"
 )
@@ -25,7 +25,7 @@ func TestUserRepository_Create(
 
 	repo := NewUser(db)
 
-	user := models.User{
+	fixture := models.User{
 		ID:           "4c728e23-74d6-47b4-ae57-a9a3f2d242c7",
 		NickName:     "テストユーザー",
 		Email:        "test@example.com",
@@ -46,7 +46,7 @@ func TestUserRepository_Create(
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	created, err := repo.Create(user)
+	created, err := repo.Create(context.Background(), fixture)
 
 	if err != nil {
 		t.Fatalf(
@@ -59,26 +59,26 @@ func TestUserRepository_Create(
 		t.Fatalf("expected id to be set")
 	}
 
-	if created.NickName != user.NickName {
+	if created.NickName != fixture.NickName {
 		t.Fatalf(
 			"expected NickName %s, got %s",
-			user.NickName,
+			fixture.NickName,
 			created.NickName,
 		)
 	}
 
-	if created.Email != user.Email {
+	if created.Email != fixture.Email {
 		t.Fatalf(
 			"expected Email %s, got %s",
-			user.Email,
+			fixture.Email,
 			created.Email,
 		)
 	}
 
-	if created.PasswordHash != user.PasswordHash {
+	if created.PasswordHash != fixture.PasswordHash {
 		t.Fatalf(
 			"expected PasswordHash %s, got %s",
-			user.PasswordHash,
+			fixture.PasswordHash,
 			created.PasswordHash,
 		)
 	}
@@ -92,9 +92,5 @@ func TestUserRepository_Create(
 			"unmet sql expectations: %v",
 			err,
 		)
-	}
-
-	if _, err := uuid.Parse(created.ID); err != nil {
-		t.Fatalf("invalid uuid: %s", created.ID)
 	}
 }

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -18,12 +19,12 @@ func TestUserUseCase_Show(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	created, err := uc.Create(input)
+	created, err := uc.Create(context.Background(), input)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
 
-	found, err := uc.Show(created.ID)
+	found, err := uc.Show(context.Background(), created.ID)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -82,7 +83,7 @@ func TestUserUseCase_Show_NotFound(t *testing.T) {
 	repo := &stubRepo{}
 	uc := NewUserUseCase(repo)
 
-	_, err := uc.Show("not-found-id")
+	_, err := uc.Show(context.Background(), "not-found-id")
 
 	if err == nil {
 		t.Fatalf("expected error, got nil")

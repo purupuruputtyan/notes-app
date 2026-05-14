@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -16,13 +17,13 @@ type stubRepo struct {
 	users []models.User
 }
 
-func (s *stubRepo) Create(u models.User) (models.User, error) {
+func (s *stubRepo) Create(ctx context.Context, u models.User) (models.User, error) {
 	u.ID = "test-id"
 	s.users = append(s.users, u)
 	return u, nil
 }
 
-func (s *stubRepo) Show(id string) (models.User, error) {
+func (s *stubRepo) Show(ctx context.Context, id string) (models.User, error) {
 	for _, u := range s.users {
 		if u.ID == id {
 			return u, nil
@@ -31,7 +32,7 @@ func (s *stubRepo) Show(id string) (models.User, error) {
 	return models.User{}, domain.ErrUserNotFound
 }
 
-func (s *stubRepo) Update(id string, params domain.UpdateUserParams) (models.User, error) {
+func (s *stubRepo) Update(ctx context.Context, id string, params domain.UpdateUserParams) (models.User, error) {
 	for i, u := range s.users {
 		if u.ID == id {
 			s.users[i].NickName = params.NickName
@@ -106,7 +107,7 @@ func decodeShowUserResponse(t *testing.T, w *httptest.ResponseRecorder) ShowUser
 func createUser(t *testing.T, h *UserHandler) models.User {
 	t.Helper()
 
-	u, err := h.usecase.Create(user.CreateUserInput{
+	created, err := h.usecase.Create(context.Background(), user.CreateUserInput{
 		NickName:  "テストユーザー",
 		Email:     "test@example.com",
 		Password:  "Password123!",
@@ -115,7 +116,7 @@ func createUser(t *testing.T, h *UserHandler) models.User {
 	if err != nil {
 		t.Fatalf("create error: %v", err)
 	}
-	return u
+	return created
 }
 
 func TestUserHandler_Create(t *testing.T) {

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"testing"
@@ -21,7 +22,7 @@ func TestUserRepository_Update(t *testing.T) {
 
 	repo := NewUser(db)
 
-	user := models.User{
+	fixture := models.User{
 		ID:           "4c728e23-74d6-47b4-ae57-a9a3f2d242c7",
 		NickName:     "テストユーザー",
 		Email:        "test@example.com",
@@ -39,46 +40,53 @@ func TestUserRepository_Update(t *testing.T) {
 		"icon_image",
 		"is_active",
 	}).AddRow(
-		user.ID,
-		user.NickName,
-		user.Email,
-		user.PasswordHash,
-		user.IconImage.String,
-		user.IsActive,
+		fixture.ID,
+		fixture.NickName,
+		fixture.Email,
+		fixture.PasswordHash,
+		fixture.IconImage.String,
+		fixture.IsActive,
 	)
 
 	mock.ExpectQuery(`select \* from "users" where "id"=\$1`).
-		WithArgs(user.ID).
+		WithArgs(fixture.ID).
 		WillReturnRows(rows)
 
 	mock.ExpectExec(`UPDATE "users"`).
+		WithArgs(
+			fixture.NickName,
+			fixture.Email,
+			fixture.PasswordHash,
+			fixture.IconImage.String,
+			fixture.ID,
+		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	updated, err := repo.Update(user.ID, domain.UpdateUserParams{
-		NickName:     user.NickName,
-		Email:        user.Email,
-		PasswordHash: user.PasswordHash,
-		IconImage:    user.IconImage,
+	updated, err := repo.Update(context.Background(), fixture.ID, domain.UpdateUserParams{
+		NickName:     fixture.NickName,
+		Email:        fixture.Email,
+		PasswordHash: fixture.PasswordHash,
+		IconImage:    fixture.IconImage,
 	})
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if updated.NickName != user.NickName {
-		t.Fatalf("expected NickName %s, got %s", user.NickName, updated.NickName)
+	if updated.NickName != fixture.NickName {
+		t.Fatalf("expected NickName %s, got %s", fixture.NickName, updated.NickName)
 	}
 
-	if updated.Email != user.Email {
-		t.Fatalf("expected Email %s, got %s", user.Email, updated.Email)
+	if updated.Email != fixture.Email {
+		t.Fatalf("expected Email %s, got %s", fixture.Email, updated.Email)
 	}
 
-	if updated.PasswordHash != user.PasswordHash {
-		t.Fatalf("expected PasswordHash %s, got %s", user.PasswordHash, updated.PasswordHash)
+	if updated.PasswordHash != fixture.PasswordHash {
+		t.Fatalf("expected PasswordHash %s, got %s", fixture.PasswordHash, updated.PasswordHash)
 	}
 
-	if updated.IconImage != user.IconImage {
-		t.Fatalf("expected IconImage %v, got %v", user.IconImage, updated.IconImage)
+	if updated.IconImage != fixture.IconImage {
+		t.Fatalf("expected IconImage %v, got %v", fixture.IconImage, updated.IconImage)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -99,7 +107,7 @@ func TestUserRepository_Update_NotFound(t *testing.T) {
 		WithArgs("not-found-id").
 		WillReturnError(sql.ErrNoRows)
 
-	_, err = repo.Update("not-found-id", domain.UpdateUserParams{
+	_, err = repo.Update(context.Background(), "not-found-id", domain.UpdateUserParams{
 		NickName:     "not-found-id",
 		Email:        "not-found-id",
 		PasswordHash: "not-found-id",
@@ -128,7 +136,7 @@ func TestUserRepository_Update_DBError(t *testing.T) {
 		WithArgs("any-id").
 		WillReturnError(errors.New("db error"))
 
-	_, err = repo.Update("any-id", domain.UpdateUserParams{
+	_, err = repo.Update(context.Background(), "any-id", domain.UpdateUserParams{
 		NickName:     "x",
 		Email:        "x",
 		PasswordHash: "x",

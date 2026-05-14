@@ -8,9 +8,7 @@ import (
 	"notes-app/internal/models"
 )
 
-func (r *UserRepository) Create(input models.User) (models.User, error) {
-	ctx := context.Background()
-
+func (r *UserRepository) Create(ctx context.Context, input models.User) (models.User, error) {
 	row := &models.User{
 		ID:           input.ID,
 		NickName:     input.NickName,

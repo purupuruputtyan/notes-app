@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
@@ -9,12 +10,12 @@ type stubRepo struct {
 	users []models.User
 }
 
-func (s *stubRepo) Create(u models.User) (models.User, error) {
+func (s *stubRepo) Create(ctx context.Context, u models.User) (models.User, error) {
 	s.users = append(s.users, u)
 	return u, nil
 }
 
-func (s *stubRepo) Show(id string) (models.User, error) {
+func (s *stubRepo) Show(ctx context.Context, id string) (models.User, error) {
 	for _, u := range s.users {
 		if u.ID == id {
 			return u, nil
@@ -25,6 +26,7 @@ func (s *stubRepo) Show(id string) (models.User, error) {
 }
 
 func (s *stubRepo) Update(
+	ctx context.Context,
 	id string,
 	u domain.UpdateUserParams,
 ) (models.User, error) {

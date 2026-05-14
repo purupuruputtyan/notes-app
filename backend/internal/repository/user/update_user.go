@@ -11,9 +11,7 @@ import (
 	"github.com/aarondl/sqlboiler/v4/boil"
 )
 
-func (r *UserRepository) Update(id string, input user.UpdateUserParams) (models.User, error) {
-	ctx := context.Background()
-
+func (r *UserRepository) Update(ctx context.Context, id string, input user.UpdateUserParams) (models.User, error) {
 	row, err := models.FindUser(ctx, r.db, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.User{}, user.ErrUserNotFound

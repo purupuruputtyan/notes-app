@@ -51,7 +51,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		IconImage: req.IconImage,
 	}
 
-	created, err := h.usecase.Create(input)
+	created, err := h.usecase.Create(r.Context(), input)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -71,7 +71,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request, id string) {
-	found, err := h.usecase.Show(id)
+	found, err := h.usecase.Show(r.Context(), id)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
@@ -110,7 +110,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request, id string) 
 		IconImage: req.IconImage,
 	}
 
-	updated, err := h.usecase.Update(input)
+	updated, err := h.usecase.Update(r.Context(), input)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)

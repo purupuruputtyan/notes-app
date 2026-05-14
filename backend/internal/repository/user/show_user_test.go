@@ -1,13 +1,15 @@
 package user
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarondl/null/v8"
-	"github.com/google/uuid"
 
+	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
 
@@ -26,7 +28,7 @@ func TestUserRepository_Show(
 
 	repo := NewUser(db)
 
-	user := models.User{
+	fixture := models.User{
 		ID:           "4c728e23-74d6-47b4-ae57-a9a3f2d242c7",
 		NickName:     "テストユーザー",
 		Email:        "test@example.com",
@@ -47,7 +49,7 @@ func TestUserRepository_Show(
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	created, err := repo.Create(user)
+	created, err := repo.Create(context.Background(), fixture)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -61,11 +63,11 @@ func TestUserRepository_Show(
 		"is_active",
 	}).
 		AddRow(
-			user.ID,
-			user.NickName,
-			user.Email,
-			user.PasswordHash,
-			user.IconImage,
+			fixture.ID,
+			fixture.NickName,
+			fixture.Email,
+			fixture.PasswordHash,
+			fixture.IconImage,
 			true,
 		)
 
@@ -73,36 +75,40 @@ func TestUserRepository_Show(
 		WithArgs(created.ID).
 		WillReturnRows(rows)
 
-	found, err := repo.Show(created.ID)
+	found, err := repo.Show(context.Background(), created.ID)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if found.ID != user.ID {
-		t.Fatalf("expected id to be set")
+	if found.ID != fixture.ID {
+		t.Fatalf(
+			"expected ID %s, got %s",
+			fixture.ID,
+			found.ID,
+		)
 	}
 
-	if found.NickName != user.NickName {
+	if found.NickName != fixture.NickName {
 		t.Fatalf(
 			"expected NickName %s, got %s",
-			user.NickName,
-			created.NickName,
+			fixture.NickName,
+			found.NickName,
 		)
 	}
 
-	if found.Email != user.Email {
+	if found.Email != fixture.Email {
 		t.Fatalf(
 			"expected Email %s, got %s",
-			user.Email,
-			created.Email,
+			fixture.Email,
+			found.Email,
 		)
 	}
 
-	if found.PasswordHash != user.PasswordHash {
+	if found.PasswordHash != fixture.PasswordHash {
 		t.Fatalf(
 			"expected PasswordHash %s, got %s",
-			user.PasswordHash,
-			created.PasswordHash,
+			fixture.PasswordHash,
+			found.PasswordHash,
 		)
 	}
 
@@ -115,10 +121,6 @@ func TestUserRepository_Show(
 			"unmet sql expectations: %v",
 			err,
 		)
-	}
-
-	if _, err := uuid.Parse(created.ID); err != nil {
-		t.Fatalf("invalid uuid: %s", created.ID)
 	}
 }
 
@@ -135,7 +137,7 @@ func TestUserRepository_Show_NotFound(t *testing.T) {
 
 	repo := NewUser(db)
 
-	user := models.User{
+	fixture := models.User{
 		ID:           "4c728e23-74d6-47b4-ae57-a9a3f2d242c7",
 		NickName:     "テストユーザー",
 		Email:        "test@example.com",
@@ -156,7 +158,7 @@ func TestUserRepository_Show_NotFound(t *testing.T) {
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	_, err = repo.Create(user)
+	_, err = repo.Create(context.Background(), fixture)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -165,8 +167,12 @@ func TestUserRepository_Show_NotFound(t *testing.T) {
 		WithArgs("not-found-id").
 		WillReturnError(sql.ErrNoRows)
 
-	_, err = repo.Show("not-found-id")
+	_, err = repo.Show(context.Background(), "not-found-id")
 	if err == nil {
 		t.Fatalf("expected error, got nil")
+	}
+
+	if !errors.Is(err, domain.ErrUserNotFound) {
+		t.Fatalf("expected ErrUserNotFound, got %v", err)
 	}
 }
