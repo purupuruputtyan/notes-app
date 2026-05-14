@@ -2,11 +2,29 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
+	"github.com/lib/pq"
 
+	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
+
+func mapInsertUserError(err error) error {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) && pqErr.Code == pgSQLStateUniqueViolation {
+		switch pqErr.Constraint {
+		case constraintUsersEmailKey:
+			return domain.ErrEmailAlreadyExists
+		case constraintUsersNickNameKey:
+			return domain.ErrNickNameAlreadyTaken
+		default:
+			return err
+		}
+	}
+	return err
+}
 
 func (r *UserRepository) Create(ctx context.Context, input models.User) (models.User, error) {
 	row := &models.User{
@@ -19,7 +37,7 @@ func (r *UserRepository) Create(ctx context.Context, input models.User) (models.
 	}
 
 	if err := row.Insert(ctx, r.db, boil.Infer()); err != nil {
-		return models.User{}, err
+		return models.User{}, mapInsertUserError(err)
 	}
 
 	return *row, nil
