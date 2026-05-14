@@ -40,6 +40,7 @@ db:
 	docker compose exec db sh
 
 migrate-create:
+	@test -n "$(name)" || (echo 'usage: make migrate-create name=your_migration_name' >&2 && exit 1)
 	docker compose exec backend \
 	goose -dir /db/migrations create $(name) sql
 

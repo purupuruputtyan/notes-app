@@ -1,3 +1,4 @@
+# ローカル / Docker Compose 向けの接続情報（本番の認証情報をここに書かないこと）。
 pkgname = "models"
 output = "internal/models"
 wipe = true
