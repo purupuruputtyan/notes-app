@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/aarondl/null/v8"
 
 	domain "notes-app/internal/domain/user"
@@ -15,7 +17,7 @@ type UpdateUserInput struct {
 	IconImage string
 }
 
-func (u *UserUseCase) Update(input UpdateUserInput) (models.User, error) {
+func (u *UserUseCase) Update(ctx context.Context, input UpdateUserInput) (models.User, error) {
 	if err := validateNickName(input.NickName); err != nil {
 		return models.User{}, err
 	}
@@ -41,5 +43,5 @@ func (u *UserUseCase) Update(input UpdateUserInput) (models.User, error) {
 		IconImage:    null.StringFrom(input.IconImage),
 	}
 
-	return u.repo.Update(input.ID, params)
+	return u.repo.Update(ctx, input.ID, params)
 }

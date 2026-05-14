@@ -1,8 +1,11 @@
 package user
 
 import (
-	"github.com/aarondl/null/v8"
+	"context"
+
 	"github.com/google/uuid"
+
+	"github.com/aarondl/null/v8"
 
 	"notes-app/internal/models"
 )
@@ -14,7 +17,7 @@ type CreateUserInput struct {
 	IconImage string
 }
 
-func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
+func (u *UserUseCase) Create(ctx context.Context, input CreateUserInput) (models.User, error) {
 	if err := validateNickName(input.NickName); err != nil {
 		return models.User{}, err
 	}
@@ -40,5 +43,5 @@ func (u *UserUseCase) Create(input CreateUserInput) (models.User, error) {
 		PasswordHash: hashed,
 		IconImage:    null.StringFrom(input.IconImage),
 	}
-	return u.repo.Create(user)
+	return u.repo.Create(ctx, user)
 }

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestUserUseCase_Create(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	created, err := uc.Create(input)
+	created, err := uc.Create(context.Background(), input)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -59,7 +60,7 @@ func TestUserUseCase_Create_EmptyNickName(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Create(input)
+	_, err := uc.Create(context.Background(), input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
@@ -82,7 +83,7 @@ func TestUserUseCase_Create_NickNameTooLong(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Create(input)
+	_, err := uc.Create(context.Background(), input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
@@ -103,7 +104,7 @@ func TestUserUseCase_Create_InvalidEmail(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Create(input)
+	_, err := uc.Create(context.Background(), input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
@@ -124,7 +125,7 @@ func TestUserUseCase_Create_PasswordTooShort(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Create(input)
+	_, err := uc.Create(context.Background(), input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
@@ -145,7 +146,7 @@ func TestUserUseCase_Create_InvalidPassword(t *testing.T) {
 		IconImage: "https://example.com",
 	}
 
-	_, err := uc.Create(input)
+	_, err := uc.Create(context.Background(), input)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
