@@ -20,9 +20,21 @@ import (
 )
 
 const (
-	addr            = ":8080"
-	shutdownTimeout = 10 * time.Second
+	defaultListenAddr = ":8080"
+	shutdownTimeout   = 10 * time.Second
 )
+
+// listenAddr は HTTP の待受アドレス。Compose 等の PORT（"8080" または ":8080"）に追従する。
+func listenAddr() string {
+	p := strings.TrimSpace(os.Getenv("PORT"))
+	if p == "" {
+		return defaultListenAddr
+	}
+	if strings.HasPrefix(p, ":") {
+		return p
+	}
+	return ":" + p
+}
 
 type userRoutesHandler interface {
 	Create(http.ResponseWriter, *http.Request)
@@ -37,22 +49,49 @@ func main() {
 	}
 	defer db.Close()
 
-	server := newServer(addr, db)
+	server := newServer(listenAddr(), db)
 
 	go listen(server)
 
 	waitForShutdown(server)
 }
 
+// getenvRequired は必須の環境変数を読む。未設定や空白のみのときはエラーを返す。
+func getenvRequired(key string) (string, error) {
+	v := strings.TrimSpace(os.Getenv(key))
+	if v == "" {
+		return "", fmt.Errorf("required environment variable %s is not set or empty", key)
+	}
+	return v, nil
+}
+
 func newDB() (*sql.DB, error) {
+	host, err := getenvRequired("DB_HOST")
+	if err != nil {
+		return nil, err
+	}
+	port, err := getenvRequired("DB_PORT")
+	if err != nil {
+		return nil, err
+	}
+	user, err := getenvRequired("DB_USER")
+	if err != nil {
+		return nil, err
+	}
+	dbName, err := getenvRequired("DB_NAME")
+	if err != nil {
+		return nil, err
+	}
+	sslMode, err := getenvRequired("DB_SSLMODE")
+	if err != nil {
+		return nil, err
+	}
+	// パスワードはローカル trust 等で空になり得るため必須チェックはしない。
+	password := os.Getenv("DB_PASSWORD")
+
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSLMODE"),
+		host, port, user, password, dbName, sslMode,
 	)
 
 	db, err := sql.Open("postgres", dsn)
@@ -65,6 +104,11 @@ func newDB() (*sql.DB, error) {
 		return nil, err
 	}
 
+	// 接続プールの既定（小〜中規模 API 向け）。負荷に合わせて調整する。
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
 	return db, nil
 }
 
@@ -73,6 +117,9 @@ func newServer(addr string, db *sql.DB) *http.Server {
 		Addr:              addr,
 		Handler:           newMux(db),
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 }
 
@@ -92,27 +139,21 @@ func newMux(db *sql.DB) http.Handler {
 
 func registerRootRoute(mux *http.ServeMux) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-
 		w.WriteHeader(http.StatusOK)
-
 		_, _ = w.Write([]byte(`{"message":"Go API is running"}`))
 	})
 }
 
 func registerHealthRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-
 		w.Header().Set("Content-Type", "application/json")
-
 		w.WriteHeader(http.StatusOK)
-
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 }
@@ -135,12 +176,10 @@ func registerUserRoutes(mux *http.ServeMux, userHandler userRoutesHandler) {
 		}
 
 		switch r.Method {
-
 		case http.MethodGet:
 			userHandler.Show(w, r, id)
 		case http.MethodPut:
 			userHandler.Update(w, r, id)
-
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -158,9 +197,7 @@ func listen(server *http.Server) {
 
 func waitForShutdown(server *http.Server) {
 	stop := make(chan os.Signal, 1)
-
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-
 	<-stop
 
 	log.Println("shutting down server...")
