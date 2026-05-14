@@ -39,4 +39,14 @@ var (
 		Code:    "ERR_006",
 		Message: "ユーザーが見つかりません",
 	}
+
+	ErrEmailAlreadyExists = AppError{
+		Code:    "ERR_007",
+		Message: "このメールアドレスは既に登録されています",
+	}
+
+	ErrNickNameAlreadyTaken = AppError{
+		Code:    "ERR_008",
+		Message: "このニックネームは既に使われています",
+	}
 )
