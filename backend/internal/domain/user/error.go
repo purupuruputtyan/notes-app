@@ -49,4 +49,9 @@ var (
 		Code:    "ERR_008",
 		Message: "このニックネームは既に使われています",
 	}
+
+	ErrInvalidLogin = AppError{
+		Code:    "ERR_009",
+		Message: "メール or パスワードが違います",
+	}
 )
