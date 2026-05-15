@@ -42,7 +42,7 @@ func (h *NoteHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res []NoteResponse
+	res := []NoteResponse{}
 	for _, n := range notes {
 		res = append(res, NoteResponse{
 			ID:        n.ID,
