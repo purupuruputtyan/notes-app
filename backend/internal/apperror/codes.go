@@ -12,4 +12,8 @@ const (
 	CodeUserNickNameAlreadyTaken = "ERR_008"
 	CodeUserInvalidLogin         = "ERR_009"
 	CodeNoteOwnerNotFound        = "ERR_010"
+	CodeNoteTitleRequired        = "ERR_011"
+	CodeNoteTitleTooLong         = "ERR_012"
+	CodeNoteContentRequired      = "ERR_013"
+	CodeNoteContentTooLong       = "ERR_014"
 )
