@@ -9,7 +9,7 @@ import (
 	"github.com/aarondl/null/v8"
 	"github.com/lib/pq"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 	"notes-app/internal/models"
 )
 
@@ -114,7 +114,7 @@ func TestMapInsertUserError(t *testing.T) {
 				Code:       pgSQLStateUniqueViolation,
 				Constraint: constraintUsersEmailKey,
 			},
-			want: domain.ErrEmailAlreadyExists,
+			want: apperror.ErrEmailAlreadyExists,
 		},
 		{
 			name: "nick_name unique violation",
@@ -122,7 +122,7 @@ func TestMapInsertUserError(t *testing.T) {
 				Code:       pgSQLStateUniqueViolation,
 				Constraint: constraintUsersNickNameKey,
 			},
-			want: domain.ErrNickNameAlreadyTaken,
+			want: apperror.ErrNickNameAlreadyTaken,
 		},
 		{
 			name: "non pq error unchanged",
@@ -201,7 +201,7 @@ func TestUserRepository_Create_EmailDuplicate(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !errors.Is(err, domain.ErrEmailAlreadyExists) {
+	if !errors.Is(err, apperror.ErrEmailAlreadyExists) {
 		t.Fatalf("expected ErrEmailAlreadyExists, got %v", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
