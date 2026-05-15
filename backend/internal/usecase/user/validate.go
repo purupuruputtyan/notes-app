@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"unicode/utf8"
 
-	"notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 )
 
 const (
@@ -22,10 +22,10 @@ var (
 // ニックネーム
 func validateNickName(nickname string) error {
 	if nickname == "" {
-		return user.ErrNickNameRequired
+		return apperror.ErrNickNameRequired
 	}
 	if utf8.RuneCountInString(nickname) > maxNickNameLength {
-		return user.ErrNickNameTooLong
+		return apperror.ErrNickNameTooLong
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func validateNickName(nickname string) error {
 func validateEmail(email string) error {
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return user.ErrInvalidEmail
+		return apperror.ErrInvalidEmail
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func validateEmail(email string) error {
 // パスワードチェック（英数字＋記号）
 func validatePassword(password string) error {
 	if utf8.RuneCountInString(password) < minPasswordLength {
-		return user.ErrPasswordTooShort
+		return apperror.ErrPasswordTooShort
 	}
 
 	hasLetter := passwordHasLetter.MatchString(password)
@@ -50,7 +50,7 @@ func validatePassword(password string) error {
 	hasSymbol := passwordHasSymbol.MatchString(password)
 
 	if !hasLetter || !hasNumber || !hasSymbol {
-		return user.ErrInvalidPassword
+		return apperror.ErrInvalidPassword
 	}
 
 	return nil

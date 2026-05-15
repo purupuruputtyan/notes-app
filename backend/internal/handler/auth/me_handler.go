@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 	"notes-app/internal/handler/httputil"
 	"notes-app/internal/middleware"
 	usecase "notes-app/internal/usecase/auth"
@@ -49,7 +49,7 @@ func (h *MeHandler) Me(
 		userID,
 	)
 	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
+		if errors.Is(err, apperror.ErrUserNotFound) {
 			httputil.WriteError(
 				w,
 				http.StatusNotFound,

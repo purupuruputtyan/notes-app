@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+
+	"notes-app/internal/apperror"
 	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
@@ -23,7 +25,7 @@ func (s *StubRepo) Show(ctx context.Context, id string) (models.User, error) {
 		}
 	}
 
-	return models.User{}, domain.ErrUserNotFound
+	return models.User{}, apperror.ErrUserNotFound
 }
 
 func (s *StubRepo) Update(
@@ -45,7 +47,7 @@ func (s *StubRepo) Update(
 		}
 	}
 
-	return models.User{}, domain.ErrUserNotFound
+	return models.User{}, apperror.ErrUserNotFound
 }
 
 func (s *StubRepo) FindByEmail(ctx context.Context, email string) (models.User, error) {
@@ -55,5 +57,5 @@ func (s *StubRepo) FindByEmail(ctx context.Context, email string) (models.User, 
 		}
 	}
 
-	return models.User{}, domain.ErrUserNotFound
+	return models.User{}, apperror.ErrUserNotFound
 }

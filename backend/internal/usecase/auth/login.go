@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"notes-app/internal/apperror"
 	domain "notes-app/internal/domain/user"
 	"notes-app/internal/lib/jwt"
 )
@@ -35,7 +36,7 @@ func (u *LoginUseCase) Execute(
 		return "", err
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
-		return "", domain.ErrInvalidLogin
+		return "", apperror.ErrInvalidLogin
 	}
 
 	token, err := jwt.GenerateToken(user.ID)
