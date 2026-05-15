@@ -7,7 +7,7 @@ import (
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/lib/pq"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 	"notes-app/internal/models"
 )
 
@@ -16,9 +16,9 @@ func mapInsertUserError(err error) error {
 	if errors.As(err, &pqErr) && pqErr.Code == pgSQLStateUniqueViolation {
 		switch pqErr.Constraint {
 		case constraintUsersEmailKey:
-			return domain.ErrEmailAlreadyExists
+			return apperror.ErrEmailAlreadyExists
 		case constraintUsersNickNameKey:
-			return domain.ErrNickNameAlreadyTaken
+			return apperror.ErrNickNameAlreadyTaken
 		default:
 			return err
 		}

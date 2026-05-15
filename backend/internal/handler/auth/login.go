@@ -37,7 +37,7 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password: req.Password,
 	})
 	if err != nil {
-		status, msg := httputil.ClientStatusFromUserDomain(err)
+		status, msg := httputil.ClientStatusFromAppError(err)
 		httputil.WriteError(w, status, msg)
 		return
 	}
