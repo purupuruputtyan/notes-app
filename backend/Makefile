@@ -22,7 +22,10 @@ test:
 		echo "no Go packages, skip go test"; \
 	fi
 
-.PHONY: up down logs backend db migrate-create migrate-up migrate-down migrate-status
+BACKEND_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(abspath $(BACKEND_DIR)/..)
+
+.PHONY: up down logs backend db migrate-create migrate-up migrate-down migrate-status seed
 
 up:
 	docker compose up --build
@@ -53,6 +56,10 @@ migrate-down:
 migrate-status:
 	docker compose exec backend sh -c 'goose -dir /db/migrations postgres "$$DATABASE_URL" status'
 
+# 開発用ユーザーを投入（migrate-up 後に実行）。docker compose down -v 後は再度 make seed。
+seed:
+	docker compose exec -T db psql -U notes -d notes_app < "$(REPO_ROOT)/db/seeds/dev_seed.sql"
+
 generate-models:
 	docker compose exec backend \
 	sqlboiler psql
@@ -60,4 +67,5 @@ generate-models:
 setup:
 	docker compose up -d --build
 	make migrate-up
+	make seed
 	make generate-models
