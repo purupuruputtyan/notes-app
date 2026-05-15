@@ -2,6 +2,7 @@ package note
 
 import (
 	"context"
+	"fmt"
 
 	"notes-app/internal/models"
 
@@ -14,7 +15,7 @@ func (r *NoteRepository) Index(ctx context.Context, userID string) (models.NoteS
 		models.NoteWhere.UserID.EQ(userID),
 	).All(ctx, r.db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("note repository index: %w", err)
 	}
 
 	return rows, nil

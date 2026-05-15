@@ -3,6 +3,7 @@ package note
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -104,6 +105,9 @@ func TestNoteRepository_Index_QueryError(t *testing.T) {
 	}
 	if !errors.Is(err, dbErr) {
 		t.Fatalf("Index: want errors.Is(_, dbErr), got %v", err)
+	}
+	if !strings.Contains(err.Error(), "note repository index") {
+		t.Fatalf("want repository wrap prefix in message, got %q", err.Error())
 	}
 	if mockErr := mock.ExpectationsWereMet(); mockErr != nil {
 		t.Fatalf("sqlmock: %v", mockErr)
