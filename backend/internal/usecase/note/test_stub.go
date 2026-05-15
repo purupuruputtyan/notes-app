@@ -29,3 +29,9 @@ func (s *StubRepo) Index(_ context.Context, userID string) (models.NoteSlice, er
 	}
 	return out, nil
 }
+
+func (s *StubRepo) Create(_ context.Context, n models.Note) (models.Note, error) {
+	note := n
+	s.notes = append(s.notes, &note)
+	return n, nil
+}
