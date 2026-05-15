@@ -20,6 +20,10 @@ type meRoutesHandler interface {
 	Me(http.ResponseWriter, *http.Request)
 }
 
+type noteRoutesHandler interface {
+	Index(http.ResponseWriter, *http.Request)
+}
+
 func registerRootRoute(mux *http.ServeMux) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -97,6 +101,26 @@ func registerMeRoutes(
 					return
 				}
 				meHandler.Me(w, r)
+			}),
+		),
+	)
+}
+
+func registerNoteRoutes(
+	mux *http.ServeMux,
+	noteHandler noteRoutesHandler,
+	authMiddleware *middleware.AuthMiddleware,
+) {
+	mux.Handle(
+		"/notes",
+		authMiddleware.RequireAuth(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch r.Method {
+				case http.MethodGet:
+					noteHandler.Index(w, r)
+				default:
+					http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				}
 			}),
 		),
 	)
