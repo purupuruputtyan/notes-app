@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 )
 
-func TestClientStatusFromUserDomain(t *testing.T) {
+func TestClientStatusFromAppError(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
@@ -17,16 +17,22 @@ func TestClientStatusFromUserDomain(t *testing.T) {
 		wantMsg    string
 	}{
 		{
-			name:       "not found",
-			err:        domain.ErrUserNotFound,
+			name:       "user not found",
+			err:        apperror.ErrUserNotFound,
+			wantStatus: http.StatusNotFound,
+			wantMsg:    "not found",
+		},
+		{
+			name:       "note owner not found",
+			err:        apperror.ErrOwnerNotFound,
 			wantStatus: http.StatusNotFound,
 			wantMsg:    "not found",
 		},
 		{
 			name:       "validation",
-			err:        domain.ErrInvalidEmail,
+			err:        apperror.ErrInvalidEmail,
 			wantStatus: http.StatusBadRequest,
-			wantMsg:    domain.ErrInvalidEmail.Message,
+			wantMsg:    apperror.ErrInvalidEmail.Message,
 		},
 		{
 			name:       "internal",
@@ -38,7 +44,7 @@ func TestClientStatusFromUserDomain(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			st, msg := ClientStatusFromUserDomain(tt.err)
+			st, msg := ClientStatusFromAppError(tt.err)
 			if st != tt.wantStatus || msg != tt.wantMsg {
 				t.Fatalf("got (%d, %q), want (%d, %q)", st, msg, tt.wantStatus, tt.wantMsg)
 			}
