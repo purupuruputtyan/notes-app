@@ -12,6 +12,11 @@ type StubRepo struct {
 	indexErr error // 非 nil のとき Index は常にこのエラーを返す（リポジトリ障害のシミュレーション）
 }
 
+// NewTestStubRepo はテスト用にノート一覧と任意の Index エラーを差し込んだ StubRepo を返す。
+func NewTestStubRepo(notes models.NoteSlice, indexErr error) *StubRepo {
+	return &StubRepo{notes: notes, indexErr: indexErr}
+}
+
 func (s *StubRepo) Index(_ context.Context, userID string) (models.NoteSlice, error) {
 	if s.indexErr != nil {
 		return nil, s.indexErr
