@@ -2,28 +2,31 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/lib/pq"
 
 	"notes-app/internal/apperror"
 	"notes-app/internal/models"
+	"notes-app/internal/repository/pgerror"
 )
 
 func mapInsertUserError(err error) error {
-	var pqErr *pq.Error
-	if errors.As(err, &pqErr) && pqErr.Code == pgSQLStateUniqueViolation {
-		switch pqErr.Constraint {
-		case constraintUsersEmailKey:
-			return apperror.ErrEmailAlreadyExists
-		case constraintUsersNickNameKey:
-			return apperror.ErrNickNameAlreadyTaken
-		default:
-			return err
-		}
+	pqErr, ok := pgerror.As(err)
+	if !ok {
+		return err
 	}
-	return err
+	if pqErr.Code != pgerror.SQLStateUniqueViolation {
+		return err
+	}
+
+	switch pqErr.Constraint {
+	case pgerror.ConstraintUsersEmailKey:
+		return apperror.ErrEmailAlreadyExists
+	case pgerror.ConstraintUsersNickNameKey:
+		return apperror.ErrNickNameAlreadyTaken
+	default:
+		return err
+	}
 }
 
 func (r *UserRepository) Create(ctx context.Context, input models.User) (models.User, error) {

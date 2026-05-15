@@ -11,6 +11,7 @@ import (
 
 	"notes-app/internal/apperror"
 	"notes-app/internal/models"
+	"notes-app/internal/repository/pgerror"
 )
 
 func TestUserRepository_Create(
@@ -111,16 +112,16 @@ func TestMapInsertUserError(t *testing.T) {
 		{
 			name: "email unique violation",
 			err: &pq.Error{
-				Code:       pgSQLStateUniqueViolation,
-				Constraint: constraintUsersEmailKey,
+				Code:       pgerror.SQLStateUniqueViolation,
+				Constraint: pgerror.ConstraintUsersEmailKey,
 			},
 			want: apperror.ErrEmailAlreadyExists,
 		},
 		{
 			name: "nick_name unique violation",
 			err: &pq.Error{
-				Code:       pgSQLStateUniqueViolation,
-				Constraint: constraintUsersNickNameKey,
+				Code:       pgerror.SQLStateUniqueViolation,
+				Constraint: pgerror.ConstraintUsersNickNameKey,
 			},
 			want: apperror.ErrNickNameAlreadyTaken,
 		},
@@ -155,7 +156,7 @@ func TestMapInsertUserError(t *testing.T) {
 	t.Run("other unique violation returns original", func(t *testing.T) {
 		t.Parallel()
 		other := &pq.Error{
-			Code:       pgSQLStateUniqueViolation,
+			Code:       pgerror.SQLStateUniqueViolation,
 			Constraint: "some_other_key",
 		}
 		got := mapInsertUserError(other)
@@ -193,8 +194,8 @@ func TestUserRepository_Create_EmailDuplicate(t *testing.T) {
 			sqlmock.AnyArg(),
 		).
 		WillReturnError(&pq.Error{
-			Code:       pgSQLStateUniqueViolation,
-			Constraint: constraintUsersEmailKey,
+			Code:       pgerror.SQLStateUniqueViolation,
+			Constraint: pgerror.ConstraintUsersEmailKey,
 		})
 
 	_, err = repo.Create(context.Background(), fixture)
