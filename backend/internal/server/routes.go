@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	middleware "notes-app/internal/middleware"
 	"strings"
 )
 
@@ -13,6 +14,10 @@ type userRoutesHandler interface {
 
 type authRoutesHandler interface {
 	Login(http.ResponseWriter, *http.Request)
+}
+
+type meRoutesHandler interface {
+	Me(http.ResponseWriter, *http.Request)
 }
 
 func registerRootRoute(mux *http.ServeMux) {
@@ -76,4 +81,23 @@ func registerAuthRoutes(mux *http.ServeMux, authHandler authRoutesHandler) {
 		}
 		authHandler.Login(w, r)
 	})
+}
+
+func registerMeRoutes(
+	mux *http.ServeMux,
+	meHandler meRoutesHandler,
+	authMiddleware *middleware.AuthMiddleware,
+) {
+	mux.Handle(
+		"/auth/me",
+		authMiddleware.RequireAuth(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+					return
+				}
+				meHandler.Me(w, r)
+			}),
+		),
+	)
 }

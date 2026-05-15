@@ -20,7 +20,7 @@ func main() {
 	}
 	defer db.Close()
 
-	mux := server.NewMux(db)
+	mux := server.NewMux(db, cfg.JWTSecret)
 	srv := server.NewHTTPServer(cfg.ListenAddr(), mux)
 
 	server.Run(srv)
