@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarondl/null/v8"
 
+	"notes-app/internal/apperror"
 	domain "notes-app/internal/domain/user"
 	"notes-app/internal/models"
 )
@@ -114,7 +115,7 @@ func TestUserRepository_Update_NotFound(t *testing.T) {
 		IconImage:    null.StringFrom("not-found-id"),
 	})
 
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got %v", err)
 	}
 

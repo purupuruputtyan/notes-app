@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"notes-app/internal/apperror"
 	"notes-app/internal/domain/user"
 	"notes-app/internal/models"
 
@@ -14,7 +15,7 @@ import (
 func (r *UserRepository) Update(ctx context.Context, id string, input user.UpdateUserParams) (models.User, error) {
 	row, err := models.FindUser(ctx, r.db, id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return models.User{}, user.ErrUserNotFound
+		return models.User{}, apperror.ErrUserNotFound
 	}
 	if err != nil {
 		return models.User{}, err

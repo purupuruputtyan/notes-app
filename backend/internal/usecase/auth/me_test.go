@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 	"notes-app/internal/models"
 	userUc "notes-app/internal/usecase/user"
 )
@@ -53,7 +53,7 @@ func TestMeUseCase_Execute_NotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("want ErrUserNotFound, got %v", err)
 	}
 }
@@ -66,7 +66,7 @@ func TestMeUseCase_Execute_EmptyUserID(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("want ErrUserNotFound, got %v", err)
 	}
 }
@@ -80,7 +80,7 @@ func TestMeUseCase_Execute_VeryLongUserID(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("want ErrUserNotFound, got %v", err)
 	}
 }

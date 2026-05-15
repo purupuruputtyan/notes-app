@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 	"notes-app/internal/models"
 
 	useruc "notes-app/internal/usecase/user"
@@ -61,7 +61,7 @@ func TestLoginUseCase_Execute_UserNotFound(t *testing.T) {
 		Email:    "missing@example.com",
 		Password: "Password1!",
 	})
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("want ErrUserNotFound, got %v", err)
 	}
 }
@@ -76,7 +76,7 @@ func TestLoginUseCase_Execute_InvalidLogin_WrongPassword(t *testing.T) {
 		Email:    "u@example.com",
 		Password: "WrongPass1!",
 	})
-	if !errors.Is(err, domain.ErrInvalidLogin) {
+	if !errors.Is(err, apperror.ErrInvalidLogin) {
 		t.Fatalf("want ErrInvalidLogin, got %v", err)
 	}
 }
@@ -91,7 +91,7 @@ func TestLoginUseCase_Execute_InvalidLogin_EmptyPassword(t *testing.T) {
 		Email:    "empty-pw@example.com",
 		Password: "",
 	})
-	if !errors.Is(err, domain.ErrInvalidLogin) {
+	if !errors.Is(err, apperror.ErrInvalidLogin) {
 		t.Fatalf("want ErrInvalidLogin, got %v", err)
 	}
 }
@@ -106,7 +106,7 @@ func TestLoginUseCase_Execute_UserNotFound_LongEmail(t *testing.T) {
 		Email:    longEmail,
 		Password: "Password1!",
 	})
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("want ErrUserNotFound, got %v", err)
 	}
 }

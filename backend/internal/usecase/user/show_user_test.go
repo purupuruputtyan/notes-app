@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	domain "notes-app/internal/domain/user"
+	"notes-app/internal/apperror"
 )
 
 func TestUserUseCase_Show(t *testing.T) {
@@ -89,7 +89,7 @@ func TestUserUseCase_Show_NotFound(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 
-	if !errors.Is(err, domain.ErrUserNotFound) {
+	if !errors.Is(err, apperror.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got %v", err)
 	}
 }
