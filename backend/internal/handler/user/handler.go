@@ -49,7 +49,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.usecase.Create(r.Context(), input)
 	if err != nil {
-		status, msg := httputil.ClientStatusFromUserDomain(err)
+		status, msg := httputil.ClientStatusFromAppError(err)
 		httputil.WriteError(w, status, msg)
 		return
 	}
@@ -93,7 +93,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request, id string) 
 
 	updated, err := h.usecase.Update(r.Context(), input)
 	if err != nil {
-		status, msg := httputil.ClientStatusFromUserDomain(err)
+		status, msg := httputil.ClientStatusFromAppError(err)
 		httputil.WriteError(w, status, msg)
 		return
 	}
